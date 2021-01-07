@@ -19,19 +19,25 @@
     document.getElementById("data-output").style["display"] = "none";
     document.getElementById("ext-output").style["display"] = "none";
     var xhttp = new XMLHttpRequest();
-    var url = "https://cors-anywhere.herokuapp.com/https://drive.google.com/file/d/1f2AriNSOAg4AaXiG3kMedjRy7xXxDkWR/view?usp=sharing";
+    var url = "https://cors-anywhere.herokuapp.com/https://raw.githubusercontent.com/Suzura1118/biofinal/main/go-basic.json";
     xhttp.open("GET", url , false);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send();
     //console.log(xhttp.responseText);
     var response = JSON.parse(xhttp.responseText);
 
-    var len=response["species"].length;
+    var len=response["graphs"][0]["nodes"].length;
+    //console.log(response["graphs"]);
+    console.log(len);
+    var count=0;
     document.getElementById("output").innerHTML = "Data fteched."
     document.getElementById("data-output").innerHTML = "";
     for(var i=0 ; i<len ; i++)
     {
-        var name = response["species"][i]["name"]
+        var name = response["graphs"][0]["nodes"][i]["lbl"];
+        //console.log(name);
+        //console.log(count);
+        count++;
         document.getElementById("data-output").innerHTML += name + "<br>"
     }
     document.getElementById("data-output").style["display"] = "block";
