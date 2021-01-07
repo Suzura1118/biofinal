@@ -5,6 +5,7 @@
   <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="go-basic_short.json"></script>
 
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -18,27 +19,29 @@
     document.getElementById("pmid-output").style["display"] = "none";
     document.getElementById("data-output").style["display"] = "none";
     document.getElementById("ext-output").style["display"] = "none";
-    var xhttp = new XMLHttpRequest();
+    /*var xhttp = new XMLHttpRequest();
     var url = "https://cors-anywhere.herokuapp.com/https://raw.githubusercontent.com/Suzura1118/biofinal/main/go-basic.json";
     xhttp.open("GET", url , false);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send();
     //console.log(xhttp.responseText);
     var response = JSON.parse(xhttp.responseText);
-
+*/ 
+    var response=data;
+    //console.log(data);
     var len=response["graphs"][0]["nodes"].length;
     //console.log(response["graphs"]);
     console.log(len);
-    var count=0;
+    
     document.getElementById("output").innerHTML = "Data fteched."
     document.getElementById("data-output").innerHTML = "";
     for(var i=0 ; i<len ; i++)
     {
         var name = response["graphs"][0]["nodes"][i]["lbl"];
-        //console.log(name);
-        //console.log(count);
-        count++;
+        console.log(name);
+        //console.log(i);
         document.getElementById("data-output").innerHTML += name + "<br>"
+        
     }
     document.getElementById("data-output").style["display"] = "block";
   }
@@ -139,7 +142,7 @@
         //console.log(proper_noun);
         var newElement = document.createElement('span');
         // if not in the dictionary than may be a proper noun
-        if (proper_noun ==-1 && need_search)
+        if (proper_noun >=0 && need_search)
         {
           var xhttp = new XMLHttpRequest();
           term = encodeURI(term);
@@ -182,7 +185,7 @@
   }
   (function load(){
     var xhttp = new XMLHttpRequest();
-    xhttp.open("GET", "https://cors-anywhere.herokuapp.com/https://aigecko.github.io/Bioinformatics-Final/words_alpha.txt" , false);
+    xhttp.open("GET", "./list.txt" , false);
     xhttp.setRequestHeader("Content-type", "text/plain");
     xhttp.send();
     var response = xhttp.responseText;
