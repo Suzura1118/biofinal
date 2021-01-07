@@ -1,0 +1,273 @@
+<!DOCTYPE>
+<html>
+<head>
+  <title>Bioinformatics</title>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+</head>
+<script>
+  function show_all_data(){
+    document.getElementById("output").innerHTML = "Data fetching."
+    document.getElementById("term-output").style["display"] = "none";
+    document.getElementById("pmid-output").style["display"] = "none";
+    document.getElementById("data-output").style["display"] = "none";
+    document.getElementById("ext-output").style["display"] = "none";
+    var xhttp = new XMLHttpRequest();
+    var url = "https://cors-anywhere.herokuapp.com/https://drive.google.com/file/d/1f2AriNSOAg4AaXiG3kMedjRy7xXxDkWR/view?usp=sharing";
+    xhttp.open("GET", url , false);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    xhttp.send();
+    //console.log(xhttp.responseText);
+    var response = JSON.parse(xhttp.responseText);
+
+    var len=response["species"].length;
+    document.getElementById("output").innerHTML = "Data fteched."
+    document.getElementById("data-output").innerHTML = "";
+    for(var i=0 ; i<len ; i++)
+    {
+        var name = response["species"][i]["name"]
+        document.getElementById("data-output").innerHTML += name + "<br>"
+    }
+    document.getElementById("data-output").style["display"] = "block";
+  }
+  // get JSON data and update data block
+  function show_query(data){
+    // update data
+    document.getElementById("output").innerHTML = "Term found."
+    document.getElementById("term-id").innerHTML = data["accession"];
+    document.getElementById("term-name").innerHTML = data["name"];
+    document.getElementById("term-ns").innerHTML = data["namespace"];
+    document.getElementById("term-def").innerHTML = data["definition"];
+    document.getElementById("term-syn").innerHTML = data["synonyms"];
+    // let output visible
+    document.getElementById("term-output").style["display"] = "block";
+  }
+  function show_extend(name) {
+    var data = hash_table[document.getElementById(name).innerHTML]
+    document.getElementById("ext-id").innerHTML = data["accession"];
+    document.getElementById("ext-term").innerHTML = data["name"];
+    document.getElementById("ext-ns").innerHTML = data["namespace"];
+    document.getElementById("ext-def").innerHTML = data["definition"];
+    document.getElementById("ext-syn").innerHTML = data["synonyms"];
+    document.getElementById("ext-output").style["display"] = "block";
+  }
+  // make a name query to database
+  function query(){
+    // waiting message
+    document.getElementById("output").innerHTML = "Querying, please wait."
+    document.getElementById("term-output").style["display"] = "none";
+    document.getElementById("pmid-output").style["display"] = "none";
+    document.getElementById("data-output").style["display"] = "none";
+    document.getElementById("ext-output").style["display"] = "none";
+    // make request
+    name=document.getElementById("Term").value;
+    var xhttp = new XMLHttpRequest();
+    var url = "https://grch37.rest.ensembl.org/ontology/name/"+name+"?";
+    xhttp.open("GET", url , false);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    xhttp.send();
+    var response = JSON.parse(xhttp.responseText);
+    // if request failed then error element will be a non-empty string
+    if(response["error"]){
+      document.getElementById("output").innerHTML = "Not a valid term."
+    }
+    else{
+      show_query(response[0]);
+    }
+  }
+  // make a PMID search
+  function search(){
+    document.getElementById("output").innerHTML = "PMID searching"
+    document.getElementById("term-output").style["display"] = "none";
+    document.getElementById("pmid-output").style["display"] = "none";
+    document.getElementById("data-output").style["display"] = "none";
+    document.getElementById("ext-output").style["display"] = "none";
+    // use CORS proxy to get cross-domain data from PubMed
+    pmid=document.getElementById("PMID").value;
+    var xhttp = new XMLHttpRequest();
+    var url = "https://cors-anywhere.herokuapp.com/https://pubmed.ncbi.nlm.nih.gov/"+pmid;
+    xhttp.open("GET", url , false);
+    xhttp.setRequestHeader("Content-type", "text/plain");
+    xhttp.send();
+    var response = xhttp.responseText;
+    parser = new DOMParser();
+    // get the DOM of a whole page
+    //xml = parser.parseFromString(response,"text/xml").documentElement.innerHTML;
+    // parse body part of DOM
+    html = parser.parseFromString(response,"text/html");
+	
+    document.getElementById("output").innerHTML = "Content processing..."
+    // abstract part has an unique tag name
+    var element = html.getElementsByClassName("abstract-content selected")[0];
+    console.log(element);
+    if(element){
+      
+      element = element.textContent;
+      //console.log(element);
+      document.getElementById("pmid-output").innerHTML = "";
+      //var text = element.textContent;
+      var PMID_list = element.split(" ");
+      console.log('7788 ');
+
+      for (var i = 0; i < PMID_list.length; i++)
+      {
+	    document.getElementById("output").innerHTML = "Processing progress: " + String(i/PMID_list.length*100).substring(0,4) + "%"
+        var term = PMID_list[i].toLowerCase();
+        var result = term.match(/[a-zA-Z][a-zA-Z0-9\-]+/);
+        //console.log(result);
+        var need_search = true;
+        if (result) {
+          term = result[0];
+          console.log(term);
+        }
+        else{
+          need_search = false;
+        }
+        var proper_noun = words_list.indexOf(term);
+        //console.log(proper_noun);
+        var newElement = document.createElement('span');
+        // if not in the dictionary than may be a proper noun
+        if (proper_noun ==-1 && need_search)
+        {
+          var xhttp = new XMLHttpRequest();
+          term = encodeURI(term);
+         
+          var sinlular = term.match(/(\S+)s$/)
+          if(sinlular){
+            term = sinlular[1]
+            
+          }
+         // console.log(term);
+          var url = "https://grch37.rest.ensembl.org/ontology/name/" + term + "?";
+          xhttp.open("GET", url, false);
+          xhttp.setRequestHeader("Content-type", "application/json");
+          xhttp.send();
+          var response = JSON.parse(xhttp.responseText);
+          if (!response["error"]){
+            newElement.style["text-decoration"] = "underline";
+            newElement.style["font-weight"] = "bold";
+            newElement.id = "word" + i;
+            newElement.addEventListener("click", (function () {
+              var name = newElement.id;
+              return function () {
+                show_extend(name);
+              }
+            })());
+            hash_table[PMID_list[i]] = response[0];
+          }
+        }
+        var newText = document.createTextNode(PMID_list[i]);
+        newElement.appendChild(newText);
+        document.getElementById("pmid-output").appendChild(newElement);
+        document.getElementById("pmid-output").appendChild(document.createTextNode(" "));
+      }
+      document.getElementById("output").innerHTML = "PMID found.";
+      document.getElementById("pmid-output").style["display"] = "block";
+    }
+    else{
+      document.getElementById("output").innerHTML = "Not a valid PMID."
+    }
+  }
+  (function load(){
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "https://cors-anywhere.herokuapp.com/https://aigecko.github.io/Bioinformatics-Final/words_alpha.txt" , false);
+    xhttp.setRequestHeader("Content-type", "text/plain");
+    xhttp.send();
+    var response = xhttp.responseText;
+    words_list = response.split("\r\n");
+    hash_table = {};
+  })();
+</script>
+<style>
+  .definition {
+    margin-top: 5px;
+    width: 750px;
+    padding: 10px;
+    border-radius: 5px;
+  }
+</style>
+<body>
+  <div style="width: 800px; margin-left: auto; margin-right: auto; padding-top: 10px">
+  <div>
+    <button type="button" onclick="show_all_data()" class="btn btn-primary">Show all data</button>
+  </div><br>
+  <div>
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="inputGroup-sizing-default">Term</span>
+      </div>
+      <input type="text" id="Term" name="Term" class="form-control"
+        aria-describedby="inputGroup-sizing-default"
+        placeholder="mitochondrion inheritance" value="mitochondrion inheritance">
+      <button type="button" onclick="query()" class="btn btn-primary">Query term</button>
+    </div>
+  </div><br>
+  <div>
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="inputGroup-sizing-default">PMID</span>
+      </div>
+      <input type="text" id="PMID" name="PMID" class="form-control"
+        aria-label="PMID" aria-describedby="inputGroup-sizing-default"
+        placeholder="10873824" value="10873824">
+      <button type="button" onclick="search()" class="btn btn-primary">Search PMID</button>
+    </div>
+  </div><br>
+  <div class="alert alert-success">
+    <div id="output">Welcome to Bioinformatics Query System</div>
+  </div>
+  <div id="data-output" class="alert alert-light" style="display: none;"></div>
+  <ul id="term-output" style="display: none" class="list-group">
+    <li class="list-group-item">
+      <button type="button" class="btn btn-primary">ID</button>
+      <button type="button" class="btn btn-light" id="term-id"></button>
+    </li>
+    <li class="list-group-item">
+      <button type="button" class="btn btn-primary">Name</button>
+      <button type="button" class="btn btn-light" id="term-name"></button>
+    </li>
+    <li class="list-group-item">
+      <button type="button" class="btn btn-primary">Namespace</button>
+      <div type="button" class="btn btn-light" id="term-ns"></div>
+    </li>
+    <li class="list-group-item">
+      <button type="button" class="btn btn-primary">Definition</button><br>
+      <div class="btn-light definition" id="term-def"></div>
+    </li>
+    <li class="list-group-item">
+      <button type="button" class="btn btn-primary">Synonyms</button>
+      <button type="button" class="btn btn-light" id="term-syn"></button>
+    </li>
+  </ul>
+  <div class="alert alert-light" id="pmid-output"></div>
+  <ul class="list-group" id="ext-output" style="display: none">
+    <li class="list-group-item">
+      <button type="button" class="btn btn-primary">Term</button>
+      <button type="button" class="btn btn-light" id="ext-term"></button>
+    </li>
+    <li class="list-group-item">
+      <button type="button" class="btn btn-primary">Namespace</button>
+      <button type="button" class="btn btn-light" id="ext-ns"></button>
+    </li>
+    <li class="list-group-item">
+      <button type="button" class="btn btn-primary">ID</button>
+      <button type="button" class="btn btn-light" id="ext-id"></button>
+    </li>
+    <li class="list-group-item">
+      <button type="button" class="btn btn-primary">Synonyms</button>
+      <button type="button" class="btn btn-light" id="ext-syn"></button>
+    </li>
+    <li class="list-group-item">
+      <button type="button" class="btn btn-primary">Definition</button>
+      <div class="btn-light definition" id="ext-def"></div>
+    </li>
+  </li>
+  </div>
+</body>
+</html>
